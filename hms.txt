@@ -1,0 +1,587 @@
+🏨 HOTEL MANAGEMENT SYSTEM — BACKEND REQUIREMENTS DOCUMENT (Spring Boot)
+
+Version: 1.0
+Purpose: Backend specification for a full Production-Grade HMS (PMS)
+
+1️⃣ SYSTEM OVERVIEW
+
+The Hotel Management System (HMS) is a backend application that manages hotel operations including reservations, room inventory, billing, housekeeping, payments, reporting, staff operations, and integrations.
+
+The system exposes REST APIs (JSON) and optionally WebSocket events for real-time updates.
+
+Primary consumers:
+
+Front Desk Web App
+
+Housekeeping Mobile App
+
+POS Systems
+
+Channel Manager (Booking.com, Expedia, Airbnb, etc.)
+
+Corporate admin portal
+
+2️⃣ ACTORS (ROLES)
+2.1 System Users
+Role	Permissions Summary
+Super Admin	Multi-property management, global configs, user management, access logs
+Hotel Manager	Room setup, rate plans, staff management, reports, overrides
+Front Desk Staff	Reservations, check-in/out, walk-ins, folios, payments
+Housekeeping Staff	Task lists, room cleaning status, maintenance requests
+Accountant	Billing, payments, settlements, invoices, finance reports
+POS Staff	Add POS charges, verify room posting
+Customer/Guest	(Optional) View booking, invoice, self-check-in
+Integration Service	External API consumer for OTA/CRS/POS/payment gateways
+3️⃣ PRIMARY MODULES
+
+Below are all modules a production PMS backend must include.
+
+3.1 Authentication & Authorization
+
+JWT-based auth
+
+Refresh tokens
+
+Password hashing
+
+Role-based access control (RBAC)
+
+Permissions matrix per role
+
+Multi-property access permissions
+
+Session management
+
+Maintenance mode lock-out
+
+API usage logs
+
+3.2 Property Management
+
+Each “hotel” is a property.
+
+Features:
+
+Create/update hotel profile
+
+Timezone + currency settings
+
+Tax configuration
+
+Policies (cancellation, check-in/out)
+
+Amenities list
+
+Room types
+
+3.3 Room Management
+
+Room creation & assignment to room type
+
+Real-time room status:
+
+Vacant
+
+Occupied
+
+Dirty / Clean
+
+Out of Service
+
+Under Maintenance
+
+Room move logic
+
+Lock/Unlock rooms
+
+Housekeeping room-status updates
+
+Room notes/logs
+
+3.4 Guest Management
+
+Guest profile CRUD
+
+Identity documents
+
+Guest preferences
+
+Guest stay history
+
+Loyalty points (optional)
+
+GDPR settings (data deletion requests)
+
+3.5 Reservation Management
+
+Core engine of the PMS.
+
+Features:
+
+New reservation from front desk
+
+OTA reservation import (from channel manager)
+
+Group reservations
+
+Reservation modification
+
+Cancellation & no-show
+
+Reservation timeline (audit)
+
+Overbooking rules
+
+Early check-in / late checkout management
+
+Guest assignment
+
+Multiple occupants (adults/children)
+
+Rate type selection (BAR, corporate, OTA)
+
+Special requests
+
+Auto-room assignment engine
+
+Manual room assignment override
+
+Reservation validation rules
+
+Prevent overlapping reservations
+
+Sync with housekeeping room status
+
+Rate code validation
+
+Payment guarantee rules (pay later, partial, prepaid)
+
+Min/max stay rules
+
+3.6 Availability & Pricing Engine
+
+Required for searching rooms & calculating final price.
+
+Availability Engine
+
+Input: dates, adults, children
+Output: available rooms & rate plans
+
+Includes:
+
+Allotment controls
+
+Blackout dates
+
+Minimum stay
+
+Room inventory control
+
+Pricing Engine
+
+Calculates:
+
+Base rate
+
+Seasonal pricing
+
+Weekend adjustments
+
+Coupon/discounts
+
+Taxes (city tax, VAT, etc.)
+
+Extra bed / breakfast charges
+
+OTA commission support
+
+3.7 Check-In / Check-Out
+Check-In:
+
+Validate reservation
+
+Assign room
+
+Guest ID verification
+
+Pre-authorize payment
+
+Update room & folio status
+
+Check-Out:
+
+Post final charges
+
+Resolve discounts
+
+Accept payments
+
+Close folio
+
+Mark room as "Dirty"
+
+3.8 Billing & Folio Management
+
+A folio is a ledger of charges.
+
+Features:
+
+Auto-generated folio on reservation
+
+Multiple folios per reservation (e.g., personal + corporate)
+
+Charges:
+
+Room charge
+
+Taxes
+
+POS charge (restaurant, spa)
+
+Manual adjustments
+
+Transfers between folios
+
+Splitting charges between guests
+
+Closing folio
+
+Printing GST/VAT invoices
+
+3.9 Payments Module
+
+Supports:
+
+Cash
+
+Credit/Debit card
+
+Payment gateways (Stripe/Razorpay/PayPal)
+
+Bank transfer
+
+OTA virtual cards
+
+Refund processing
+
+Partial payments
+
+Advance payments
+
+Payment reconciliation logs
+
+3.10 Housekeeping Module
+
+Room cleaning status updates
+
+Task assignment to attendants
+
+Daily cleaning schedule
+
+Maintenance request logging
+
+HK analytics (rooms cleaned per staff)
+
+Real-time notifications
+
+3.11 Inventory & Maintenance
+
+Consumables tracking (toiletries, laundry)
+
+Stock adjustments
+
+Supplier management
+
+Maintenance jobs
+
+Equipment logs
+
+3.12 Staff & HR Module
+
+Staff profiles
+
+Attendance (optional)
+
+Shift management
+
+Role & permission assignment
+
+Digital documents (work contract)
+
+Activity logs
+
+3.13 Reports Module
+Operational Reports:
+
+Room status report
+
+Housekeeping productivity
+
+Daily revenue report
+
+Arrival/Departure list
+
+Expected check-ins
+
+Cashier shift reports
+
+Financial Reports:
+
+GST/VAT tax report
+
+Payment breakdown
+
+Ledger summary
+
+Folio audit
+
+Business KPIs:
+
+Occupancy %
+
+ADR (Average Daily Rate)
+
+RevPAR
+
+Profitability breakdown
+
+3.14 Integrations Module
+Required integrations:
+
+Channel Manager (OTA sync)
+
+Booking.com
+
+Expedia
+
+Airbnb
+
+POS systems
+
+Payment gateways
+
+Key card door lock system
+
+Accounting systems
+
+SMS/Email provider
+
+IoT sensors (optional)
+
+4️⃣ HIGH LEVEL WORKFLOWS
+4.1 Reservation Workflow
+
+Search rooms → availability engine
+
+Select room & rate plan
+
+Add guest details
+
+Choose payment type (guarantee / pay later)
+
+Create reservation
+
+Confirmation email/SMS sent
+
+4.2 Check-In Workflow
+
+Locate reservation
+
+Validate guest identity
+
+Preauthorize card (optional)
+
+Assign room
+
+Update folio & room status
+
+Issue keycard
+
+4.3 Billing Workflow
+
+Auto-post daily room charge
+
+Apply taxes
+
+Post POS charges (via integration)
+
+Apply manual charges
+
+Accept payment
+
+Close folio + issue invoice
+
+4.4 Housekeeping Workflow
+
+Rooms are marked “Dirty” after checkout
+
+HK app fetches cleaning tasks
+
+Staff updates status (cleaned/inspected)
+
+Backend updates room availability
+
+5️⃣ SYSTEM ARCHITECTURE (SPRING BOOT)
+
+Recommended structure:
+
+com.hotelms
+ ├── auth
+ ├── common
+ ├── config
+ ├── controller
+ ├── dto
+ ├── entity
+ ├── exception
+ ├── repository
+ ├── service
+ ├── reservation
+ ├── room
+ ├── guest
+ ├── folio
+ ├── payment
+ ├── housekeeping
+ ├── reporting
+ ├── integration
+ └── util
+
+Libraries:
+
+Spring Boot
+
+Spring Security + JWT
+
+Spring Data JPA
+
+Hibernate Validator
+
+MapStruct (mapping DTOs)
+
+Spring Cloud (if microservices)
+
+Feign (for external APIs)
+
+Redis (cache)
+
+RabbitMQ/Kafka (async tasks)
+
+6️⃣ DATABASE MODEL (RELATIONAL)
+Core Tables:
+
+hotel
+
+room_type
+
+room
+
+guest
+
+reservation
+
+reservation_guest
+
+rate_plan
+
+folio
+
+folio_charge
+
+payment
+
+housekeeping_task
+
+staff
+
+staff_role
+
+audit_log
+
+ota_mapping
+
+pos_charge
+
+…(complete ER diagram was given earlier)
+
+7️⃣ NON-FUNCTIONAL REQUIREMENTS
+Performance
+
+Search availability < 300ms
+
+Inventory update < 100ms
+
+System supports 500+ concurrent reservations
+
+Security
+
+JWT expiry rotation
+
+Rate limiting on critical endpoints
+
+Audit logging for all write operations
+
+Encryption for PII fields
+
+Reliability
+
+Zero data loss
+
+ACID transactions
+
+Backup every 24h
+
+Failover DB setup (optional)
+
+Scalability
+
+Stateless backend (horizontal scaling)
+
+Redis caching for rate plans, availability
+
+Maintainability
+
+Clean hexagonal architecture
+
+DTO → Service → Domain → Repository layering
+
+Clear domain boundaries for modules
+
+8️⃣ API ENDPOINT SUMMARY
+
+(Full list provided earlier — can generate full OpenAPI spec if you want.)
+
+9️⃣ PROJECT BUILD PLAN (GROUND UP)
+Milestone 1 — Skeleton (2 days)
+
+Spring Boot project structure
+
+Auth + RBAC
+
+Database migrations with Flyway
+
+Milestone 2 — Core Modules (3–4 weeks)
+
+Rooms
+
+Guests
+
+Reservations
+
+Availability engine
+
+Milestone 3 — Operations (2–3 weeks)
+
+Check-in/out
+
+Housekeeping
+
+Folio engine
+
+Milestone 4 — Finance (2–3 weeks)
+
+Charges
+
+Payments
+
+Invoices
+
+Milestone 5 — Integrations & Reports (4+ weeks)
